@@ -1,0 +1,101 @@
+---
+title: "Week 6 Exercise: R Markdown"
+author: "Wenhui Zeng"
+date: "08/03/2016"
+output: pdf_document
+---
+
+Edit the YAML header (above) to reflect your name and today's date, then procede to edit the rest of this document according the directions below. Submit both a .Rmd docmunt and a fully typset PDF.
+
+#Exercise 1: Headers
+
+Edit this R Markdown script so that each exercise header (e.g. "Exercise 1" above) gets typset as a level 1 header.
+
+Exercise 2: Font
+
+Make one word in the sentence **bold**, one word *italicized*, one word ***bold-italicized***, and one word ~~strike-through~~.
+
+Exercise 3: Lists
+
+Create an enumerated list of your top 5 favorite movies.
+1. favorite
+    1. Harry Porter
+    2. Brave
+    3. Up
+    4. Finding Dory
+    5. Frozen
+
+
+Create an unordered list of 3 things about R that annoy you.
+* Unfavor of R
+    * Always install something
+    * Always update
+    * There is no professional certification of R. 
+
+Exercise 4: Web-links
+
+Link the phrase "R Studio cheat sheets" to the following URL: https://www.rstudio.com/resources/cheatsheets/
+[R Studio cheat sheets][M]
+[M]:https://www.rstudio.com/resources/cheatsheets/
+
+Exercise 5: R-chunk with echo
+
+Wrap the following R code into a "chunk" that displays both the input and evaluated output.
+
+```{r}
+library(ISwR)
+data(red.cell.folate)
+summary(red.cell.folate)
+```
+
+Exercise 6: R chunk with results = "as.is"
+
+What happens if you display the summary with the chunk option, results="as.is"
+
+```{r, results='asis'}
+summary(red.cell.folate)
+```
+
+Exercise 7: R-chunk without echo
+
+Wrap the folloing into a chunk that shows a boxplot of folate by ventilation, but does not "echo" the input commands.
+
+```{r, echo=F}
+library(ggplot2)
+ggplot(data = red.cell.folate, aes(x = ventilation, y = folate)) + geom_boxplot()
+```
+
+Exercise 8: print(xtable(...))
+
+Write one more expression to the following R script that prints an xtable of the folate.aov.summary object, then enclose all lines into a chunk that displays a typeset table, but not the input code.
+
+
+```{r, echo=FALSE, results='asis'}
+library(xtable)
+library(ISwR)
+folate.aov.summary <- summary(aov(folate ~ ventilation, data = red.cell.folate))
+print(xtable(folate.aov.summary), type = "latex", comment = FALSE)
+```
+
+Exercise 9: Inline results
+
+Pull the F statistic, degrees of freedom, and p-value from the folate.aov.summary object in a chunk that is not echoed, and then display those statistics inline here.
+
+
+```{r, echo=F, include=F}
+library(xtable)
+library(ISwR)
+folate.aov.summary <- summary(aov(folate ~ ventilation, data = red.cell.folate))
+f <- folate.aov.summary[[1]][1,4]
+df1 <- folate.aov.summary[[1]][1,1]
+df2 <- folate.aov.summary[[1]][2,1]
+p <- folate.aov.summary[[1]][1,5]
+attributes(p) <- NULL 
+```
+($F_{`r df1`, `r df2`} = `r f`, p = `r p`):
+
+
+
+
+
+

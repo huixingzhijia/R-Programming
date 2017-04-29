@@ -1,0 +1,122 @@
+---
+title: "synthesisII"
+author: "Wenhui Zeng"
+date: "August 29, 2016"
+output: pdf_document
+---
+
+#**Introduction**
+The ANOVA test was used to see if there is difference between different sexual group among average alcohol consumption.The variable used in the ANOVA test was sex(SXORIENT) and average alcohol drinking(AVEDRNK2). 
+
+The sex variable was recoded into five categories, including straight, lesbian or gay, bisexuel, other and missing.After cleaning the data, the variable was coded into factor variables. The average alcohol drinking was numeric variable. For people who answer "don't know" and "refuse" was categorized as missing value.  
+
+```{r,echo=FALSE}
+library(foreign)
+library(xtable)
+library(ggplot2)
+LLCP2014 <- read.xport("D:/courses/BSTcourse/R programming/synthesis_project/LLCP2014XPT/LLCP2014.XPT")
+synthesis<-data.frame(LLCP2014$MENTHLTH,LLCP2014$AVEDRNK2,LLCP2014$SXORIENT,
+                      LLCP2014$RRCLASS2,LLCP2014$CHCKIDNY,LLCP2014$HLTHPLN1)
+
+synthesis$LLCP2014.AVEDRNK2[synthesis$LLCP2014.AVEDRNK2==77]<-NA
+synthesis$LLCP2014.AVEDRNK2[synthesis$LLCP2014.AVEDRNK2==99]<-NA
+
+synthesis$LLCP2014.SXORIENT[synthesis$LLCP2014.SXORIENT==1 ]<-"Straight"
+synthesis$LLCP2014.SXORIENT[synthesis$LLCP2014.SXORIENT==2 ]<-"Lesbian or gay"
+synthesis$LLCP2014.SXORIENT[synthesis$LLCP2014.SXORIENT==3 ]<-"Bisexuel"
+synthesis$LLCP2014.SXORIENT[synthesis$LLCP2014.SXORIENT==4 ]<-"Other"
+synthesis$LLCP2014.SXORIENT[synthesis$LLCP2014.SXORIENT==7 ]<-"NA"
+synthesis$LLCP2014.SXORIENT[synthesis$LLCP2014.SXORIENT==9]<-"NA"
+synthesis$LLCP2014.SXORIENT <- as.factor(synthesis$LLCP2014.SXORIENT)
+```
+
+
+#**ANOVA**
+In this section, we will look at the relationship between gender and average drink alcohol assumption
+```{r,echo=FALSE,results='asis'}
+synthesis.aov <- aov(LLCP2014.AVEDRNK2 ~ LLCP2014.SXORIENT, data = synthesis)
+anova<-summary(synthesis.aov)
+f <- anova[[1]][1,4]
+df1 <- anova[[1]][1,1]
+df2 <- anova[[1]][2,1]
+p <- anova[[1]][1,5]
+print(xtable(anova, caption = "ANOVA table for average alcohol assumption by sex."),comment=F, caption.placement = "top")
+```
+
+```{r echo=F, warning=F, message=F, fig.cap= "Average acholoho assumption by sex."}
+ggplot(data = synthesis, aes(x = LLCP2014.SXORIENT, y = LLCP2014.AVEDRNK2)) + 
+  stat_summary(fun.data = "mean_cl_normal", na.rm = T)
+```
+
+A significant relationship between sex and average acohol drinking was found $F_{`r df1`, `r df2`} = `r f`, p = `r p`$). 
+
+There is a difference of difference between different sexual group among average alcohol consumption.(*P-value*<0.01).People who identified themselve as "other" comsumed the highest alcohol, followed by bisexuel, lesbian or gay and straight.
+
+#**Linear Regression**
+This study also investigate the relationship between alcohol comsumption and the days in the past month that patients are not in good condition. A simple linear model was built between these two variables.
+
+```{r,echo=FALSE,results='asis'}
+synthesis$LLCP2014.MENTHLTH[synthesis$LLCP2014.MENTHLTH==77]<-NA
+synthesis$LLCP2014.MENTHLTH[synthesis$LLCP2014.MENTHLTH==99]<-NA
+synthesis$LLCP2014.MENTHLTH[synthesis$LLCP2014.MENTHLTH==88]<-0
+synthesis.lm <- lm(LLCP2014.MENTHLTH ~LLCP2014.AVEDRNK2, data = synthesis)
+s.l.m<-summary(synthesis.lm )
+f <- round(s.l.m$fstatistic[1], 2)
+df1 <- s.l.m$fstatistic[2]
+df2 <- s.l.m$fstatistic[3]
+p <- signif(pf(f, df1, df2, lower.tail = F), 2)
+r2 <- round(s.l.m$r.squared, 2)
+attributes(p) <- NULL 
+library(xtable)
+print(xtable(synthesis.lm,caption="Regression table for days reporting mental health and average alcohol asumption" ), type = "latex", comment = FALSE,caption.placement = "top")
+```
+
+There is a simple linear relation between the days in bad mood and the average alcohol comsumption. 
+
+```{r echo=F, warning=F, message=F, fig.cap="Days reporting poor physical health by age."}
+ggplot(data =synthesis, aes(x = LLCP2014.AVEDRNK2, y = LLCP2014.MENTHLTH)) +
+  stat_binhex(colour="white", na.rm =T) +
+  scale_fill_gradientn(colours=c("gray90", "blue"), name = "Frequency", na.value=NA) +
+  stat_smooth(method = lm)
+```
+
+There is a significant linear relationship between days experiencing poor physical health and age ($F_{`r df1`, `r df2`} = `r f`, p = `r p`, r^2 = `r r2`$), however, examination of Figure 2 reveals that this model might not be the best model for describing this data. 
+
+#**Logistic Regression**
+In this study, I was focused on study the relationship between kidney disease and health behavior.The outcome variables is whether or not have kidney disease(CHCKIDNY). The predictor variables are race(RRCLASS2), gender(SXORIENT), mental health(MENTHLTH),average alcohol comsuption(AVEDRNK2) and health care coverage(HLTHPLN1). 
+
+
+```{r, echo=F, results='asis',warning=F, message=F}
+synthesis$LLCP2014.HLTHPLN1 [synthesis$LLCP2014.HLTHPLN1 ==1 ]<-"Yes"
+synthesis$LLCP2014.HLTHPLN1 [synthesis$LLCP2014.HLTHPLN1 ==2 ]<-"No"
+synthesis$LLCP2014.HLTHPLN1 [synthesis$LLCP2014.HLTHPLN1 ==7 ]<-"NA"
+synthesis$LLCP2014.HLTHPLN1 [synthesis$LLCP2014.HLTHPLN1 ==9 ]<-"NA"
+synthesis$LLCP2014.HLTHPLN1 <- as.factor(synthesis$LLCP2014.HLTHPLN1)
+
+synthesis$LLCP2014.RRCLASS2[synthesis$LLCP2014.RRCLASS2==1 ]<-"White"
+synthesis$LLCP2014.RRCLASS2[synthesis$LLCP2014.RRCLASS2==2 ]<-"Black or African American"
+synthesis$LLCP2014.RRCLASS2[synthesis$LLCP2014.RRCLASS2==3 ]<-"Hispanic or Latino"
+synthesis$LLCP2014.RRCLASS2[synthesis$LLCP2014.RRCLASS2==4 ]<-"Asian"
+synthesis$LLCP2014.RRCLASS2[synthesis$LLCP2014.RRCLASS2==5 ]<-"Native Hawaiian or Other Pacific Islander"
+synthesis$LLCP2014.RRCLASS2[synthesis$LLCP2014.RRCLASS2==6 ]<-"American Indian or Alaska Native"
+synthesis$LLCP2014.RRCLASS2[synthesis$LLCP2014.RRCLASS2==7 ]<-"NA"
+synthesis$LLCP2014.RRCLASS2[synthesis$LLCP2014.RRCLASS2==8 ]<-"NA"
+synthesis$LLCP2014.RRCLASS2[synthesis$LLCP2014.RRCLASS2==9 ]<-"NA"
+synthesis$LLCP2014.RRCLASS2 <- as.factor(synthesis$LLCP2014.RRCLASS2)
+
+synthesis$LLCP2014.CHCKIDNY[synthesis$LLCP2014.CHCKIDNY ==1 ]<-"Yes"
+synthesis$LLCP2014.CHCKIDNY[synthesis$LLCP2014.CHCKIDNY ==2 ]<-"No"
+synthesis$LLCP2014.CHCKIDNY[synthesis$LLCP2014.CHCKIDNY > 2] <- "NA"
+synthesis$LLCP2014.CHCKIDNY<- as.factor(synthesis$LLCP2014.CHCKIDNY)
+
+synthesis.glm <- glm(LLCP2014.CHCKIDNY ~ LLCP2014.HLTHPLN1, data = synthesis,
+                     family = binomial("logit"))
+
+# Now create a custom regression + odds ratio table
+reg.odd<- cbind(
+  Coef = coef(synthesis.glm),
+  OR = exp(coef(synthesis.glm)),
+  exp(confint(synthesis.glm)))
+print(xtable(reg.odd, caption = "Regression coefficients and odds ratios for kidney disease as a function of race and mental health ."), comment = F, caption.placement = "top")
+
+```
